@@ -1,0 +1,55 @@
+{
+  "report_metadata": {
+    "platform": "Web3 Sentinel - Smart Contract Security Analysis",
+    "version": "1.0.0",
+    "generated_at": "2026-11-07T07:06:30.931797Z",
+    "scan_id": "deb66623-e76d-4adb-bfc9-4365ce91c5d1",
+    "target": "VulnerableBank.sol"
+  },
+  "executive_summary": {
+    "security_score": 70.0,
+    "risk_level": "CRITICAL",
+    "findings_count": {
+      "total": 1,
+      "critical": 1,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "informational": 0
+    },
+    "execution_time_ms": 1396.98
+  },
+  "methodology": {
+    "static_analysis": "Slither static analysis framework + Sentinel Custom AST heuristic rules",
+    "controlled_reproduction": "Foundry local sandbox environment (forge test -vvvv)",
+    "compliance_standards": [
+      "SWC Registry",
+      "OpenZeppelin Security Guidelines",
+      "ConsenSys Best Practices"
+    ]
+  },
+  "findings": [
+    {
+      "id": "a4c77d5a-3c83-4aee-a8ac-95766162b466",
+      "title": "Reentrancy via Checks-Effects-Interactions Violation",
+      "severity": "Critical",
+      "confidence": "Confirmed",
+      "category": "Reentrancy",
+      "location": {
+        "file": "VulnerableBank.sol",
+        "contract": "DetectedContract",
+        "function": "withdraw",
+        "line_start": 28,
+        "line_end": 32
+      },
+      "description": "In function 'withdraw', an external low-level call sends Ether at line 28 before state variables are updated at line 32. A malicious receiver can recursively invoke this function before the state update occurs.",
+      "impact": "Complete drainage of contract funds through recursive external calls.",
+      "reproduction": "1. Deploy an attacking contract with a receive() callback that calls the vulnerable function.\n2. Deposit minimal funds.\n3. Call the withdraw function to trigger recursive execution until contract balance reaches zero.",
+      "remediation": "1. Apply the Checks-Effects-Interactions (CEI) pattern: update state variables before making external calls.\n2. Inherit OpenZeppelin's ReentrancyGuard and decorate the function with `nonReentrant`.",
+      "code_snippet": "        (bool success, ) = msg.sender.call{value: balance}(\"\");\n        require(success, \"Transfer failed\");\n\n        // State update happens too late!\n        balances[msg.sender] = 0;",
+      "tool": "Web3 Sentinel Heuristic Analyzer"
+    }
+  ],
+  "controlled_lab_results": {},
+  "disclaimer": "This automated security analysis and audit report does not guarantee or provide any warranty regarding the complete safety, correctness, or exploit-free nature of the smart contracts analyzed. A comprehensive manual audit and multi-faceted formal verification is strongly advised prior to production deployment."
+}
